@@ -770,7 +770,8 @@ export default function FutebolSorterApp() {
             11x11)
           </div>
           <div>
-            Desenvolvido com Next.js App Router, React & Tailwind CSS
+            Desenvolvido por{" "}
+            <strong className="text-slate-800 dark:text-slate-200">NKSGG</strong>
           </div>
         </div>
       </footer>

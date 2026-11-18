@@ -8,11 +8,11 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased transition-colors duration-200 overflow-x-hidden;
+    @apply bg-[#f4f6f9] text-slate-900 antialiased transition-colors duration-200 overflow-x-hidden;
   }
 
   .dark body {
-    @apply bg-slate-950 text-slate-100;
+    @apply bg-[#070b14] text-slate-100;
   }
 }
 

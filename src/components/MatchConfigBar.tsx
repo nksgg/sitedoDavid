@@ -107,18 +107,18 @@ export function MatchConfigBar({
               onClick={() => onChangeBuilderMode("auto")}
               className={`p-3 sm:p-3.5 rounded-xl border text-left transition-all active:scale-[0.98] flex flex-col justify-between ${
                 builderMode === "auto"
-                  ? "border-orange-500 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20"
-                  : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-slate-800 dark:text-slate-200 hover:border-orange-300"
+                  ? "border-slate-900 dark:border-orange-500 bg-slate-900 dark:bg-slate-800 text-white shadow-md shadow-slate-900/15"
+                  : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <Sparkles
                   className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                    builderMode === "auto" ? "text-white" : "text-orange-500"
+                    builderMode === "auto" ? "text-orange-400" : "text-orange-500"
                   }`}
                 />
                 {builderMode === "auto" && (
-                  <span className="text-[9px] sm:text-[10px] font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-white/20 text-white">
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/30">
                     Ativo
                   </span>
                 )}
@@ -130,7 +130,7 @@ export function MatchConfigBar({
                 <div
                   className={`text-[10px] sm:text-[11px] mt-0.5 leading-tight ${
                     builderMode === "auto"
-                      ? "text-orange-100"
+                      ? "text-slate-300"
                       : "text-slate-500 dark:text-slate-400"
                   }`}
                 >
@@ -144,18 +144,18 @@ export function MatchConfigBar({
               onClick={() => onChangeBuilderMode("manual")}
               className={`p-3 sm:p-3.5 rounded-xl border text-left transition-all active:scale-[0.98] flex flex-col justify-between ${
                 builderMode === "manual"
-                  ? "border-orange-500 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20"
-                  : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-slate-800 dark:text-slate-200 hover:border-orange-300"
+                  ? "border-slate-900 dark:border-orange-500 bg-slate-900 dark:bg-slate-800 text-white shadow-md shadow-slate-900/15"
+                  : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <MousePointerClick
                   className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                    builderMode === "manual" ? "text-white" : "text-orange-500"
+                    builderMode === "manual" ? "text-orange-400" : "text-orange-500"
                   }`}
                 />
                 {builderMode === "manual" && (
-                  <span className="text-[9px] sm:text-[10px] font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-white/20 text-white">
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/30">
                     Ativo
                   </span>
                 )}
@@ -167,7 +167,7 @@ export function MatchConfigBar({
                 <div
                   className={`text-[10px] sm:text-[11px] mt-0.5 leading-tight ${
                     builderMode === "manual"
-                      ? "text-orange-100"
+                      ? "text-slate-300"
                       : "text-slate-500 dark:text-slate-400"
                   }`}
                 >

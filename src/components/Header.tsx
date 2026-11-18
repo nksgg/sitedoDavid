@@ -90,7 +90,7 @@ export function Header({
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md transition-colors">
+      <header className="sticky top-0 z-30 border-b border-slate-200/70 dark:border-slate-800/70 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl transition-colors">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
             {/* Brand Logo */}
@@ -98,26 +98,27 @@ export function Header({
               onClick={() => setActiveTab("roster")}
               className="flex items-center gap-2.5 cursor-pointer group min-w-0"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-md shadow-orange-500/25 shrink-0 group-active:scale-95 transition-transform">
-                <Flame className="w-4 h-4 sm:w-5 sm:h-5 fill-white/20" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 shadow-sm shrink-0 group-active:scale-95 transition-transform relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 via-transparent to-emerald-500/20" />
+                <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 relative z-10" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h1 className="text-base sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
+                  <h1 className="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
                     Futebol<span className="text-orange-500">Sorter</span>
                   </h1>
-                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 dark:bg-orange-950/70 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
-                    PRO Racha
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
+                    Racha
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block truncate">
-                  Gerenciador e Sorteador Inteligente de Partidas
+                  Gestão, Sorteio &amp; Súmula
                 </p>
               </div>
             </div>
 
-            {/* Desktop Navigation Tabs */}
-            <nav className="hidden md:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/90 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+            {/* Desktop Segmented Navigation Tabs */}
+            <nav className="hidden md:flex items-center gap-1 bg-slate-100/90 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/70 dark:border-slate-800">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -125,27 +126,31 @@ export function Header({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs lg:text-sm font-bold transition-all ${
                       isActive
-                        ? "bg-orange-500 text-white shadow-sm shadow-orange-500/30"
-                        : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
+                        ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon
+                      className={`w-4 h-4 ${
+                        isActive ? "text-orange-500" : "opacity-75"
+                      }`}
+                    />
                     <span>{tab.label}</span>
-                    {tab.badge && (
+                    {tab.badge !== undefined && (
                       <span
-                        className={`text-xs px-1.5 py-0.5 rounded-md font-bold ${
+                        className={`text-[11px] px-1.5 py-0.5 rounded-md font-extrabold tabular-nums ${
                           isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                            ? "bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300"
+                            : "bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                         }`}
                       >
                         {tab.badge}
                       </span>
                     )}
                     {tab.highlight && !isActive && (
-                      <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
                     )}
                   </button>
                 );
@@ -178,7 +183,7 @@ export function Header({
               {/* Quick Add Player Button */}
               <button
                 onClick={onOpenNewPlayerModal}
-                className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-orange-500 hover:bg-orange-600 active:scale-95 text-white shadow-sm shadow-orange-500/20 transition-all min-h-[38px]"
+                className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 dark:bg-orange-500 dark:hover:bg-orange-600 active:scale-95 text-white shadow-xs transition-all min-h-[38px]"
               >
                 <Plus className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">Novo Jogador</span>

@@ -272,7 +272,7 @@ export function TeamBuilder({
                   limit={limitPerTeam}
                   stats={statsA}
                   onChangePlayerPosition={onChangePlayerPosition}
-                  onRemovePlayer={(p) => onAssignPlayerManual(p, "pool")}
+                  onRemovePlayer={(p) => onAssignPlayerManual(p, "reserves")}
                   onMoveOtherTeam={(p) => onAssignPlayerManual(p, "teamB")}
                 />
 
@@ -284,34 +284,87 @@ export function TeamBuilder({
                   limit={limitPerTeam}
                   stats={statsB}
                   onChangePlayerPosition={onChangePlayerPosition}
-                  onRemovePlayer={(p) => onAssignPlayerManual(p, "pool")}
+                  onRemovePlayer={(p) => onAssignPlayerManual(p, "reserves")}
                   onMoveOtherTeam={(p) => onAssignPlayerManual(p, "teamA")}
                 />
               </div>
 
-              {/* Reserves Preview if any */}
+              {/* Interactive Reserves Bank */}
               {reserves.length > 0 && (
-                <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                      🔄 Banco de Reservas / Próximos ({reserves.length})
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      Entram na próxima ou substituem durante o racha
+                <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3.5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                        Banco de Reservas / Próximos ({reserves.length})
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Toque em <strong>+ Time A</strong> ou{" "}
+                      <strong>+ Time B</strong> para escalar um reserva como
+                      titular
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {reserves.map((p) => (
-                      <div
-                        key={p.id}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
-                      >
-                        <span>{p.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold">
-                          Reserva
-                        </span>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {reserves.map((p) => {
+                      const teamAFull = teamA.length >= limitPerTeam;
+                      const teamBFull = teamB.length >= limitPerTeam;
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 hover:border-orange-300/80 dark:hover:border-orange-700/60 transition-all"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-7 h-7 rounded-lg bg-amber-100/90 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-[11px] font-extrabold flex items-center justify-center shrink-0">
+                              {p.name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate block">
+                                {p.name}
+                              </span>
+                              <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                ★ {p.skillLevel} • Reserva
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => onAssignPlayerManual(p, "teamA")}
+                              title={
+                                teamAFull
+                                  ? `${config.teamAName} está completo (${teamA.length}/${limitPerTeam}). Mande um titular para a reserva primeiro.`
+                                  : `Escalar ${p.name} no ${config.teamAName}`
+                              }
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all active:scale-95 ${
+                                teamAFull
+                                  ? "bg-slate-200/70 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                  : "bg-orange-500 hover:bg-orange-600 text-white shadow-xs"
+                              }`}
+                            >
+                              + Time A
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onAssignPlayerManual(p, "teamB")}
+                              title={
+                                teamBFull
+                                  ? `${config.teamBName} está completo (${teamB.length}/${limitPerTeam}). Mande um titular para a reserva primeiro.`
+                                  : `Escalar ${p.name} no ${config.teamBName}`
+                              }
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all active:scale-95 ${
+                                teamBFull
+                                  ? "bg-slate-200/70 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                  : "bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white shadow-xs"
+                              }`}
+                            >
+                              + Time B
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -666,33 +719,53 @@ function TeamPanelCard({
   const progressPct = Math.min(100, Math.round((players.length / limit) * 100));
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-xs flex flex-col h-full">
-      {/* Header */}
+    <div
+      className={`rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 border-t-[3px] ${
+        isOrange
+          ? "border-t-orange-500"
+          : "border-t-slate-800 dark:border-t-slate-400"
+      } overflow-hidden shadow-[0_2px_12px_rgba(15,23,42,0.04)] flex flex-col h-full`}
+    >
+      {/* Editorial Header */}
       <div
-        className={`px-4 py-3.5 text-white flex items-center justify-between ${
+        className={`px-4 sm:px-5 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 ${
           isOrange
-            ? "bg-gradient-to-r from-orange-500 to-orange-600"
-            : "bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-950"
+            ? "bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-transparent dark:from-orange-950/30 dark:via-orange-950/10 dark:to-transparent"
+            : "bg-gradient-to-r from-slate-100/80 via-slate-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent"
         }`}
       >
         <div className="min-w-0">
-          <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 block">
-            {isOrange ? "Time A (Coletes)" : "Time B (Sem Colete)"}
+          <span
+            className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-1 ${
+              isOrange
+                ? "bg-orange-100 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300"
+                : "bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            }`}
+          >
+            {isOrange ? "Time A • Coletes" : "Time B • Sem Colete"}
           </span>
-          <h4 className="text-base font-extrabold leading-tight truncate">
+          <h4 className="text-base sm:text-lg font-extrabold leading-tight truncate text-slate-900 dark:text-white">
             {title}
           </h4>
         </div>
         <div className="text-right shrink-0">
-          <span className="text-lg font-extrabold">
+          <span
+            className={`text-xl font-black tabular-nums ${
+              isOrange
+                ? "text-orange-600 dark:text-orange-400"
+                : "text-slate-900 dark:text-white"
+            }`}
+          >
             {players.length}/{limit}
           </span>
-          <div className="text-[10px] opacity-85">Média ★ {stats.avgSkill}</div>
+          <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
+            Média ★ {stats.avgSkill}
+          </div>
         </div>
       </div>
 
       {/* Progress & Goalkeeper Status Bar */}
-      <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
+      <div className="px-4 sm:px-5 py-2.5 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-1.5">
           <Hand
             className={`w-3.5 h-3.5 shrink-0 ${
@@ -712,9 +785,9 @@ function TeamPanelCard({
           </span>
         </div>
 
-        <div className="w-20 sm:w-24 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0">
+        <div className="w-20 sm:w-24 h-2 rounded-full bg-slate-200/80 dark:bg-slate-700 overflow-hidden shrink-0">
           <div
-            className={`h-full transition-all ${
+            className={`h-full rounded-full transition-all duration-300 ${
               isOrange ? "bg-orange-500" : "bg-slate-700 dark:bg-orange-400"
             }`}
             style={{ width: `${progressPct}%` }}
@@ -723,7 +796,7 @@ function TeamPanelCard({
       </div>
 
       {/* Players List with Mobile-Friendly Position Selector */}
-      <div className="p-3 sm:p-3.5 space-y-2 flex-1">
+      <div className="p-3 sm:p-4 space-y-2 flex-1">
         {players.length === 0 ? (
           <div className="py-8 sm:py-10 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
             Nenhum jogador escalado no {title}.
@@ -734,12 +807,18 @@ function TeamPanelCard({
             return (
               <div
                 key={p.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 hover:border-orange-300 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 sm:px-3 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800/80 hover:bg-white dark:hover:bg-slate-800/80 hover:border-orange-300/80 dark:hover:border-orange-700/60 hover:shadow-xs transition-all"
               >
                 {/* Top/Left: Number + Full Name + Badge */}
-                <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-between sm:justify-start gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-6 h-6 rounded-lg text-[11px] font-extrabold flex items-center justify-center shrink-0 tabular-nums ${
+                        isOrange
+                          ? "bg-orange-100/80 text-orange-700 dark:bg-orange-950/70 dark:text-orange-300"
+                          : "bg-slate-200/80 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+                      }`}
+                    >
                       {idx + 1}
                     </span>
                     <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
@@ -751,7 +830,7 @@ function TeamPanelCard({
                   </div>
                 </div>
 
-                {/* Bottom/Right: Controls (Position Dropdown, Swap Team, Remove) */}
+                {/* Bottom/Right: Controls (Position Dropdown, Swap Team, Move to Reserve) */}
                 <div className="flex items-center justify-end gap-1.5 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-700/50 shrink-0">
                   <div className="hidden sm:block">
                     <PositionBadge position={currentPos} size="sm" short />
@@ -764,7 +843,7 @@ function TeamPanelCard({
                       onChangePlayerPosition(p.id, e.target.value as Position)
                     }
                     title="Mudar posição deste jogador no time"
-                    className="flex-1 sm:flex-initial px-2 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-orange-500 cursor-pointer"
+                    className="flex-1 sm:flex-initial px-2 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-orange-500 cursor-pointer"
                   >
                     {ALL_POSITIONS.map((pos) => (
                       <option key={pos} value={pos}>
@@ -777,17 +856,17 @@ function TeamPanelCard({
                     type="button"
                     onClick={() => onMoveOtherTeam(p)}
                     title="Trocar de time"
-                    className="px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold bg-white sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent border sm:border-0 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-slate-700 transition-colors"
+                    className="px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     ⇄
                   </button>
                   <button
                     type="button"
                     onClick={() => onRemovePlayer(p)}
-                    title="Remover do time"
-                    className="px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-white sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent border sm:border-0 border-slate-200 dark:border-slate-700 text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors"
+                    title="Mover para a reserva"
+                    className="px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 dark:hover:bg-slate-700 transition-colors"
                   >
-                    ×
+                    ↓
                   </button>
                 </div>
               </div>

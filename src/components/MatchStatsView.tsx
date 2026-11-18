@@ -1046,21 +1046,41 @@ function TeamStatSheet({
   }, [players, onlyWithEvents, currentStats, mvpPlayerId]);
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col">
+    <div
+      className={`rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 border-t-[3px] ${
+        isOrange
+          ? "border-t-orange-500"
+          : "border-t-slate-800 dark:border-t-slate-400"
+      } shadow-[0_2px_12px_rgba(15,23,42,0.04)] overflow-hidden flex flex-col`}
+    >
       <div
-        className={`px-4 sm:px-5 py-3.5 text-white flex items-center justify-between ${
+        className={`px-4 sm:px-5 py-3.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 ${
           isOrange
-            ? "bg-gradient-to-r from-orange-500 to-orange-600"
-            : "bg-gradient-to-r from-slate-800 to-slate-900"
+            ? "bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-transparent dark:from-orange-950/30 dark:via-orange-950/10 dark:to-transparent"
+            : "bg-gradient-to-r from-slate-100/80 via-slate-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent"
         }`}
       >
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider opacity-85 block">
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1 ${
+              isOrange
+                ? "bg-orange-100 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300"
+                : "bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            }`}
+          >
             {subtitle}
           </span>
-          <h3 className="text-base sm:text-lg font-extrabold">{teamName}</h3>
+          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+            {teamName}
+          </h3>
         </div>
-        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/15">
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+            isOrange
+              ? "bg-orange-100/90 text-orange-700 dark:bg-orange-950/70 dark:text-orange-300"
+              : "bg-slate-200/80 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+          }`}
+        >
           {players.length} atletas
         </span>
       </div>

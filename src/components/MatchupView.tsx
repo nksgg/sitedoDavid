@@ -244,6 +244,7 @@ export function MatchupView({
             stats={statsA}
             onChangePlayerPosition={onChangePlayerPosition}
             onSwapOtherTeam={(p) => onSwapTeam(p, "teamB")}
+            onMoveToReserves={(p) => onSwapTeam(p, "reserves")}
           />
 
           <LineupCard
@@ -255,6 +256,7 @@ export function MatchupView({
             stats={statsB}
             onChangePlayerPosition={onChangePlayerPosition}
             onSwapOtherTeam={(p) => onSwapTeam(p, "teamA")}
+            onMoveToReserves={(p) => onSwapTeam(p, "reserves")}
           />
         </div>
       ) : (
@@ -313,17 +315,33 @@ export function MatchupView({
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => onSwapTeam(player, "teamA")}
-                    title={`Mover para ${config.teamAName}`}
-                    className="px-2.5 py-1 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 text-[10px] font-bold hover:bg-orange-200 active:scale-95"
+                    title={
+                      teamA.length >= format.playersPerTeam
+                        ? `${config.teamAName} está completo (${teamA.length}/${format.playersPerTeam}). Mande um titular para a reserva primeiro.`
+                        : `Escalar para ${config.teamAName}`
+                    }
+                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 transition-all ${
+                      teamA.length >= format.playersPerTeam
+                        ? "bg-slate-200/70 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                        : "bg-orange-500 hover:bg-orange-600 text-white shadow-xs"
+                    }`}
                   >
-                    → Time A
+                    + Time A
                   </button>
                   <button
                     onClick={() => onSwapTeam(player, "teamB")}
-                    title={`Mover para ${config.teamBName}`}
-                    className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold hover:bg-slate-300 active:scale-95"
+                    title={
+                      teamB.length >= format.playersPerTeam
+                        ? `${config.teamBName} está completo (${teamB.length}/${format.playersPerTeam}). Mande um titular para a reserva primeiro.`
+                        : `Escalar para ${config.teamBName}`
+                    }
+                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold active:scale-95 transition-all ${
+                      teamB.length >= format.playersPerTeam
+                        ? "bg-slate-200/70 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                        : "bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 text-white shadow-xs"
+                    }`}
                   >
-                    → Time B
+                    + Time B
                   </button>
                 </div>
               </div>
@@ -393,6 +411,7 @@ interface LineupCardProps {
   stats: ReturnType<typeof getTeamStats>;
   onChangePlayerPosition: (playerId: string, newPosition: Position) => void;
   onSwapOtherTeam: (player: Player) => void;
+  onMoveToReserves: (player: Player) => void;
 }
 
 function LineupCard({
@@ -404,36 +423,55 @@ function LineupCard({
   stats,
   onChangePlayerPosition,
   onSwapOtherTeam,
+  onMoveToReserves,
 }: LineupCardProps) {
   const isOrange = accent === "orange";
   const sorted = sortPlayersByPosition(players);
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-      {/* Team Banner */}
+    <div
+      className={`rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/90 border-t-[3px] ${
+        isOrange
+          ? "border-t-orange-500"
+          : "border-t-slate-800 dark:border-t-slate-400"
+      } shadow-[0_2px_12px_rgba(15,23,42,0.04)] overflow-hidden flex flex-col`}
+    >
+      {/* Editorial Team Banner */}
       <div
-        className={`p-4 sm:p-5 text-white flex items-center justify-between gap-2 ${
+        className={`p-4 sm:p-5 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 ${
           isOrange
-            ? "bg-gradient-to-r from-orange-500 to-orange-600"
-            : "bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-950"
+            ? "bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-transparent dark:from-orange-950/30 dark:via-orange-950/10 dark:to-transparent"
+            : "bg-gradient-to-r from-slate-100/80 via-slate-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent"
         }`}
       >
         <div className="min-w-0">
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider opacity-85 block truncate">
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1 ${
+              isOrange
+                ? "bg-orange-100 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300"
+                : "bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            }`}
+          >
             {subtitle}
           </span>
-          <h3 className="text-lg sm:text-xl font-extrabold mt-0.5 truncate">
+          <h3 className="text-lg sm:text-xl font-extrabold truncate text-slate-900 dark:text-white">
             {teamName}
           </h3>
         </div>
         <div className="text-right shrink-0">
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-[11px] sm:text-xs font-extrabold">
+          <div
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-extrabold tabular-nums ${
+              isOrange
+                ? "bg-orange-100/90 text-orange-700 dark:bg-orange-950/70 dark:text-orange-300"
+                : "bg-slate-200/80 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+            }`}
+          >
             <span>
               {players.length}/{limit} Titulares
             </span>
           </div>
-          <div className="flex items-center justify-end gap-1 text-[11px] sm:text-xs mt-1 opacity-90">
-            <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+          <div className="flex items-center justify-end gap-1 text-[11px] sm:text-xs mt-1 text-slate-500 dark:text-slate-400 font-semibold tabular-nums">
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
             <span>Média: {stats.avgSkill}</span>
           </div>
         </div>
@@ -526,10 +564,18 @@ function LineupCard({
                       <button
                         onClick={() => onSwapOtherTeam(player)}
                         title="Trocar jogador para o outro time"
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent border sm:border-0 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-slate-700 transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         <ArrowLeftRight className="w-3 h-3" />
                         <span>Trocar</span>
+                      </button>
+
+                      <button
+                        onClick={() => onMoveToReserves(player)}
+                        title="Mover jogador para a reserva"
+                        className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        ↓
                       </button>
                     </div>
                   </div>
