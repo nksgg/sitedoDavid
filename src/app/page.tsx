@@ -4,7 +4,9 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   ActiveTab,
   BuilderMode,
+  MatchRecord,
   Player,
+  PlayerMatchStats,
   Position,
   TeamConfig,
 } from "@/types/soccer";
@@ -12,6 +14,8 @@ import { INITIAL_PLAYERS, MATCH_FORMATS } from "@/data/mockPlayers";
 import {
   assignPositionsToTeam,
   generateBalancedTeams,
+  getEmptyCareerStats,
+  getEmptyPlayerMatchStats,
   getNextTacticalPosition,
   sortPlayersByPosition,
 } from "@/utils/teamSorter";
@@ -20,10 +24,12 @@ import { PlayerManagement } from "@/components/PlayerManagement";
 import { MatchConfigBar } from "@/components/MatchConfigBar";
 import { TeamBuilder } from "@/components/TeamBuilder";
 import { MatchupView } from "@/components/MatchupView";
+import { MatchStatsView } from "@/components/MatchStatsView";
 import { PlayerModal } from "@/components/PlayerModal";
 
 const STORAGE_KEY_PLAYERS = "futebolsorter_players_v2";
 const STORAGE_KEY_THEME = "futebolsorter_dark_v1";
+const STORAGE_KEY_HISTORY = "futebolsorter_history_v1";
 
 export default function FutebolSorterApp() {
   // Navigation & Theme State
@@ -57,6 +63,17 @@ export default function FutebolSorterApp() {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Live Match Sheet & History State
+  const [currentStats, setCurrentStats] = useState<
+    Record<string, PlayerMatchStats>
+  >({});
+  const [mvpPlayerId, setMvpPlayerId] = useState<string | null>(null);
+  const [matchNotes, setMatchNotes] = useState("");
+  const [matchFinished, setMatchFinished] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [matchHistory, setMatchHistory] = useState<MatchRecord[]>([]);
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -78,10 +95,64 @@ export default function FutebolSorterApp() {
       if (savedTheme === "true") {
         setDarkMode(true);
       }
+      const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+      if (savedHistory) {
+        const parsedHistory = JSON.parse(savedHistory);
+        if (Array.isArray(parsedHistory)) {
+          setMatchHistory(parsedHistory);
+        }
+      }
     } catch {
       // Ignore storage errors
     }
   }, []);
+
+  // Persist matchHistory
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(matchHistory));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [matchHistory]);
+
+  // Live Match Timer
+  useEffect(() => {
+    if (!timerRunning) return;
+    const interval = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timerRunning]);
+
+  // Sync currentStats with formed teams (preserving existing counters)
+  useEffect(() => {
+    setCurrentStats((prev) => {
+      const next: Record<string, PlayerMatchStats> = {};
+      const syncGroup = (
+        list: Player[],
+        teamKey: "teamA" | "teamB" | "reserve"
+      ) => {
+        for (const p of list) {
+          const existing = prev[p.id];
+          if (existing) {
+            next[p.id] = {
+              ...existing,
+              playerName: p.name,
+              team: teamKey,
+              position: p.assignedPosition,
+            };
+          } else {
+            next[p.id] = getEmptyPlayerMatchStats(p, teamKey);
+          }
+        }
+      };
+      syncGroup(teamA, "teamA");
+      syncGroup(teamB, "teamB");
+      syncGroup(reserves, "reserve");
+      return next;
+    });
+  }, [teamA, teamB, reserves]);
 
   // Persist players & dark mode
   useEffect(() => {
@@ -219,6 +290,12 @@ export default function FutebolSorterApp() {
     setReserves(result.reserves);
     setWarnings(result.warnings);
     setLastSortedAt(result.lastSortedAt);
+    setCurrentStats({});
+    setMvpPlayerId(null);
+    setMatchNotes("");
+    setMatchFinished(false);
+    setElapsedSeconds(0);
+    setTimerRunning(false);
     showToast(
       `🎲 Times e posições em campo sorteados para ${MATCH_FORMATS[config.format].shortName}!`
     );
@@ -383,10 +460,155 @@ export default function FutebolSorterApp() {
     setReserves([]);
     setWarnings([]);
     setLastSortedAt(null);
+    setCurrentStats({});
+    setMvpPlayerId(null);
+    setMatchNotes("");
+    setMatchFinished(false);
+    setElapsedSeconds(0);
+    setTimerRunning(false);
     showToast("🧹 Escalações limpas.");
   };
 
+  // Match Stats Handlers
+  const handleUpdatePlayerStat = (
+    playerId: string,
+    field: "goals" | "assists" | "fouls" | "yellowCards" | "redCards" | "saves",
+    delta: number
+  ) => {
+    setCurrentStats((prev) => {
+      const target = prev[playerId];
+      if (!target) return prev;
+      const nextVal = Math.max(0, target[field] + delta);
+      return {
+        ...prev,
+        [playerId]: {
+          ...target,
+          [field]: nextVal,
+        },
+      };
+    });
+  };
+
+  const handleResetCurrentSheet = () => {
+    setCurrentStats((prev) => {
+      const reset: Record<string, PlayerMatchStats> = {};
+      for (const [id, st] of Object.entries(prev)) {
+        reset[id] = {
+          ...st,
+          goals: 0,
+          assists: 0,
+          fouls: 0,
+          yellowCards: 0,
+          redCards: 0,
+          saves: 0,
+        };
+      }
+      return reset;
+    });
+    setMvpPlayerId(null);
+    setMatchNotes("");
+    setMatchFinished(false);
+    setElapsedSeconds(0);
+    setTimerRunning(false);
+    showToast("🧹 Súmula zerada para nova contagem.");
+  };
+
+  const handleFinishMatch = () => {
+    const statsList = Object.values(currentStats);
+    const scoreA = statsList
+      .filter((s) => s.team === "teamA")
+      .reduce((acc, s) => acc + s.goals, 0);
+    const scoreB = statsList
+      .filter((s) => s.team === "teamB")
+      .reduce((acc, s) => acc + s.goals, 0);
+
+    const mvpPlayer = mvpPlayerId
+      ? players.find((p) => p.id === mvpPlayerId)
+      : undefined;
+
+    const newRecord: MatchRecord = {
+      id: `m-${Date.now()}`,
+      date: new Date().toISOString(),
+      format: config.format,
+      teamAName: config.teamAName,
+      teamBName: config.teamBName,
+      scoreA,
+      scoreB,
+      durationSeconds: elapsedSeconds,
+      mvpPlayerId: mvpPlayer?.id,
+      mvpPlayerName: mvpPlayer?.name,
+      notes: matchNotes.trim() || undefined,
+      playerStats: statsList,
+    };
+
+    setMatchHistory((prev) => [newRecord, ...prev]);
+
+    // Update career stats for all participating players
+    const statsById = new Map(statsList.map((s) => [s.playerId, s]));
+    setPlayers((prev) =>
+      prev.map((p) => {
+        const matchStat = statsById.get(p.id);
+        if (!matchStat) return p;
+        const participated =
+          matchStat.team === "teamA" ||
+          matchStat.team === "teamB" ||
+          matchStat.goals > 0 ||
+          matchStat.assists > 0 ||
+          matchStat.fouls > 0 ||
+          matchStat.yellowCards > 0 ||
+          matchStat.redCards > 0 ||
+          matchStat.saves > 0;
+        if (!participated) return p;
+
+        const base = p.stats || getEmptyCareerStats();
+        return {
+          ...p,
+          stats: {
+            matches: base.matches + 1,
+            goals: base.goals + matchStat.goals,
+            assists: base.assists + matchStat.assists,
+            fouls: base.fouls + matchStat.fouls,
+            yellowCards: base.yellowCards + matchStat.yellowCards,
+            redCards: base.redCards + matchStat.redCards,
+            saves: base.saves + matchStat.saves,
+            mvps: base.mvps + (mvpPlayerId === p.id ? 1 : 0),
+          },
+        };
+      })
+    );
+
+    setTimerRunning(false);
+    setMatchFinished(true);
+    showToast(
+      `🏆 Partida salva! ${config.teamAName} ${scoreA} × ${scoreB} ${config.teamBName}`
+    );
+  };
+
+  const handleDeleteMatchRecord = (matchId: string) => {
+    setMatchHistory((prev) => prev.filter((m) => m.id !== matchId));
+    showToast("🗑️ Registro de partida removido do histórico.");
+  };
+
+  const handleResetCareerStats = () => {
+    setPlayers((prev) => prev.map((p) => ({ ...p, stats: undefined })));
+    setMatchHistory([]);
+    showToast("🔄 Ranking geral e histórico de partidas zerados.");
+  };
+
   const hasTeamsFormed = teamA.length > 0 || teamB.length > 0;
+
+  const liveScore = useMemo(() => {
+    if (!hasTeamsFormed) return null;
+    const list = Object.values(currentStats);
+    return {
+      a: list
+        .filter((s) => s.team === "teamA")
+        .reduce((acc, s) => acc + s.goals, 0),
+      b: list
+        .filter((s) => s.team === "teamB")
+        .reduce((acc, s) => acc + s.goals, 0),
+    };
+  }, [hasTeamsFormed, currentStats]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -398,6 +620,8 @@ export default function FutebolSorterApp() {
         totalCount={players.length}
         selectedFormat={config.format}
         hasTeamsFormed={hasTeamsFormed}
+        matchCount={matchHistory.length}
+        liveScore={liveScore}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         onOpenNewPlayerModal={() => {
@@ -480,8 +704,40 @@ export default function FutebolSorterApp() {
                 handleAssignPlayerManual(player, target)
               }
               onBackToBuilder={() => setActiveTab("builder")}
+              onGoToStats={() => setActiveTab("stats")}
             />
           </div>
+        )}
+
+        {/* TAB 4: SÚMULA AO VIVO, ESTATÍSTICAS & HISTÓRICO */}
+        {activeTab === "stats" && (
+          <MatchStatsView
+            players={players}
+            teamA={teamA}
+            teamB={teamB}
+            reserves={reserves}
+            config={config}
+            currentStats={currentStats}
+            mvpPlayerId={mvpPlayerId}
+            matchNotes={matchNotes}
+            matchFinished={matchFinished}
+            elapsedSeconds={elapsedSeconds}
+            timerRunning={timerRunning}
+            matchHistory={matchHistory}
+            onToggleTimer={() => setTimerRunning((prev) => !prev)}
+            onResetTimer={() => {
+              setTimerRunning(false);
+              setElapsedSeconds(0);
+            }}
+            onUpdatePlayerStat={handleUpdatePlayerStat}
+            onSelectMvp={setMvpPlayerId}
+            onChangeNotes={setMatchNotes}
+            onFinishMatch={handleFinishMatch}
+            onResetCurrentSheet={handleResetCurrentSheet}
+            onDeleteMatchRecord={handleDeleteMatchRecord}
+            onResetCareerStats={handleResetCareerStats}
+            onGoToBuilder={() => setActiveTab("builder")}
+          />
         )}
       </main>
 

@@ -5,7 +5,10 @@ import {
 } from "@/data/mockPlayers";
 import {
   MatchFormatId,
+  MatchRecord,
   Player,
+  PlayerCareerStats,
+  PlayerMatchStats,
   Position,
   SortedTeamsResult,
   TeamConfig,
@@ -302,4 +305,150 @@ export function getTeamStats(players: Player[]) {
     avgSkill,
     totalPlayers: players.length,
   };
+}
+
+export function getEmptyCareerStats(): PlayerCareerStats {
+  return {
+    matches: 0,
+    goals: 0,
+    assists: 0,
+    fouls: 0,
+    yellowCards: 0,
+    redCards: 0,
+    saves: 0,
+    mvps: 0,
+  };
+}
+
+export function getEmptyPlayerMatchStats(
+  player: Player,
+  team: "teamA" | "teamB" | "reserve"
+): PlayerMatchStats {
+  return {
+    playerId: player.id,
+    playerName: player.name,
+    team,
+    position: player.assignedPosition,
+    goals: 0,
+    assists: 0,
+    fouls: 0,
+    yellowCards: 0,
+    redCards: 0,
+    saves: 0,
+  };
+}
+
+export function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+/**
+ * Formata a súmula final da partida (placar, gols, assistências, faltas, cartões e MVP) para WhatsApp
+ */
+export function formatWhatsAppMatchSummary(
+  record: Omit<MatchRecord, "id" | "date"> & { date?: string }
+): string {
+  const format = MATCH_FORMATS[record.format];
+  const dateObj = record.date ? new Date(record.date) : new Date();
+  const dateStr = dateObj.toLocaleDateString("pt-BR");
+
+  const winnerLine =
+    record.scoreA > record.scoreB
+      ? `🏆 Vitória de *${record.teamAName}*!`
+      : record.scoreB > record.scoreA
+      ? `🏆 Vitória de *${record.teamBName}*!`
+      : `🤝 *Empate equilibrado!*`;
+
+  const lines: string[] = [
+    `⚽📊 *SÚMULA FINAL - RACHA ${format.shortName}* 📊⚽`,
+    `📅 ${dateStr}${
+      record.durationSeconds && record.durationSeconds > 0
+        ? ` • ⏱️ ${formatDuration(record.durationSeconds)}`
+        : ""
+    }`,
+    ``,
+    `🟠 *${record.teamAName}*  ${record.scoreA} x ${record.scoreB}  *${record.teamBName}* ⚫`,
+    winnerLine,
+  ];
+
+  const scorersA = record.playerStats
+    .filter((p) => p.team === "teamA" && p.goals > 0)
+    .sort((a, b) => b.goals - a.goals);
+  const scorersB = record.playerStats
+    .filter((p) => p.team === "teamB" && p.goals > 0)
+    .sort((a, b) => b.goals - a.goals);
+
+  if (scorersA.length > 0 || scorersB.length > 0) {
+    lines.push(``, `⚽ *GOLS DA PARTIDA*`);
+    if (scorersA.length > 0) {
+      lines.push(
+        `🟠 _${record.teamAName}_: ${scorersA
+          .map((p) => `${p.playerName} (${p.goals})`)
+          .join(", ")}`
+      );
+    }
+    if (scorersB.length > 0) {
+      lines.push(
+        `⚫ _${record.teamBName}_: ${scorersB
+          .map((p) => `${p.playerName} (${p.goals})`)
+          .join(", ")}`
+      );
+    }
+  }
+
+  const assists = record.playerStats
+    .filter((p) => p.assists > 0)
+    .sort((a, b) => b.assists - a.assists);
+  if (assists.length > 0) {
+    lines.push(
+      ``,
+      `🎯 *ASSISTÊNCIAS*`,
+      ...assists.map((p) => `• ${p.playerName} (${p.assists})`)
+    );
+  }
+
+  const saves = record.playerStats
+    .filter((p) => p.saves > 0)
+    .sort((a, b) => b.saves - a.saves);
+  if (saves.length > 0) {
+    lines.push(
+      ``,
+      `🧤 *DEFESAS DIFÍCEIS*`,
+      ...saves.map((p) => `• ${p.playerName} (${p.saves})`)
+    );
+  }
+
+  const foulsAndCards = record.playerStats
+    .filter((p) => p.fouls > 0 || p.yellowCards > 0 || p.redCards > 0)
+    .sort(
+      (a, b) =>
+        b.redCards * 5 +
+        b.yellowCards * 2 +
+        b.fouls -
+        (a.redCards * 5 + a.yellowCards * 2 + a.fouls)
+    );
+
+  if (foulsAndCards.length > 0) {
+    lines.push(``, `🟨 *FALTAS & CARTÕES*`);
+    for (const p of foulsAndCards) {
+      const parts: string[] = [];
+      if (p.fouls > 0) parts.push(`${p.fouls} falta${p.fouls > 1 ? "s" : ""}`);
+      if (p.yellowCards > 0) parts.push(`🟨 ${p.yellowCards}`);
+      if (p.redCards > 0) parts.push(`🟥 ${p.redCards}`);
+      lines.push(`• ${p.playerName}: ${parts.join(" • ")}`);
+    }
+  }
+
+  if (record.mvpPlayerName) {
+    lines.push(``, `⭐ *CRAQUE DO JOGO (MVP):* ${record.mvpPlayerName}`);
+  }
+
+  if (record.notes && record.notes.trim()) {
+    lines.push(``, `📝 _Obs: ${record.notes.trim()}_`);
+  }
+
+  lines.push(``, `⚡ _Súmula gerada pelo FutebolSorter_`);
+  return lines.join("\n");
 }

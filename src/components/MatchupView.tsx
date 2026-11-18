@@ -23,6 +23,7 @@ import {
   MapPin,
   ArrowLeftRight,
   Dices,
+  BarChart3,
 } from "lucide-react";
 
 interface MatchupViewProps {
@@ -36,6 +37,7 @@ interface MatchupViewProps {
   onChangePlayerPosition: (playerId: string, newPosition: Position) => void;
   onSwapTeam: (player: Player, target: "teamA" | "teamB" | "reserves") => void;
   onBackToBuilder: () => void;
+  onGoToStats: () => void;
 }
 
 const POSITIONS_ORDER: Position[] = [
@@ -56,6 +58,7 @@ export function MatchupView({
   onChangePlayerPosition,
   onSwapTeam,
   onBackToBuilder,
+  onGoToStats,
 }: MatchupViewProps) {
   const [copied, setCopied] = useState(false);
   const [viewStyle, setViewStyle] = useState<"cards" | "pitch">("cards");
@@ -216,6 +219,14 @@ export function MatchupView({
             >
               <Shuffle className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">Re-Sortear</span>
+            </button>
+
+            <button
+              onClick={onGoToStats}
+              className="col-span-3 sm:col-span-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-500/90 hover:bg-emerald-500 active:scale-95 text-white text-xs font-extrabold shadow-md shadow-emerald-500/20 transition-all"
+            >
+              <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+              <span>Abrir Súmula &amp; Placar</span>
             </button>
           </div>
         </div>
@@ -595,11 +606,16 @@ function TacticalPitchCard({
       </div>
 
       {/* Soccer Field Container */}
-      <div className="relative bg-gradient-to-b from-emerald-700 via-emerald-600 to-emerald-700 p-3 sm:p-5 min-h-[320px] sm:min-h-[380px] flex flex-col justify-between border-4 border-emerald-800">
+      <div className="relative pitch-stripes p-3 sm:p-5 min-h-[340px] sm:min-h-[400px] flex flex-col justify-between border-4 border-emerald-900/90 shadow-inner">
         {/* Field Markings */}
-        <div className="pointer-events-none absolute inset-3 sm:inset-4 border-2 border-white/25 rounded-lg" />
-        <div className="pointer-events-none absolute left-3 right-3 sm:left-4 sm:right-4 top-1/2 h-0.5 bg-white/25" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white/25" />
+        <div className="pointer-events-none absolute inset-3 sm:inset-4 border-2 border-white/30 rounded-lg" />
+        {/* Penalty Boxes */}
+        <div className="pointer-events-none absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 w-32 sm:w-40 h-10 sm:h-12 border-2 border-t-0 border-white/25 rounded-b-md" />
+        <div className="pointer-events-none absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 w-32 sm:w-40 h-10 sm:h-12 border-2 border-b-0 border-white/25 rounded-t-md" />
+        {/* Halfway Line & Center Circle */}
+        <div className="pointer-events-none absolute left-3 right-3 sm:left-4 sm:right-4 top-1/2 h-0.5 bg-white/30" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white/30" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/40" />
 
         {/* Attackers Top */}
         <div className="relative z-10">{renderRow(atts, "Atacante")}</div>

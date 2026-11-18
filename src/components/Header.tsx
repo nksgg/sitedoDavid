@@ -11,6 +11,7 @@ import {
   Moon,
   Plus,
   Flame,
+  BarChart3,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -20,6 +21,8 @@ interface HeaderProps {
   totalCount: number;
   selectedFormat: MatchFormatId;
   hasTeamsFormed: boolean;
+  matchCount: number;
+  liveScore?: { a: number; b: number } | null;
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
   onOpenNewPlayerModal: () => void;
@@ -32,12 +35,20 @@ export function Header({
   totalCount,
   selectedFormat,
   hasTeamsFormed,
+  matchCount,
+  liveScore,
   darkMode,
   setDarkMode,
   onOpenNewPlayerModal,
 }: HeaderProps) {
   const format = MATCH_FORMATS[selectedFormat];
   const isReady = availableCount >= format.totalStarters;
+
+  const statsBadge = liveScore
+    ? `${liveScore.a}x${liveScore.b}`
+    : matchCount > 0
+    ? matchCount
+    : undefined;
 
   const tabs: {
     id: ActiveTab;
@@ -49,24 +60,31 @@ export function Header({
   }[] = [
     {
       id: "roster",
-      label: "1. Gestão de Jogadores",
+      label: "1. Elenco",
       shortLabel: "Elenco",
       icon: Users,
       badge: `${availableCount}/${totalCount}`,
     },
     {
       id: "builder",
-      label: "2. Montar / Sortear Times",
+      label: "2. Sortear",
       shortLabel: "Sortear",
       icon: Shuffle,
       badge: format.shortName,
     },
     {
       id: "matchup",
-      label: "3. Confronto & WhatsApp",
+      label: "3. Confronto",
       shortLabel: "Confronto",
       icon: Trophy,
       highlight: hasTeamsFormed,
+    },
+    {
+      id: "stats",
+      label: "4. Súmula & Stats",
+      shortLabel: "Súmula",
+      icon: BarChart3,
+      badge: statsBadge,
     },
   ];
 
@@ -189,7 +207,7 @@ export function Header({
         aria-label="Navegação principal mobile"
         className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200/90 dark:border-slate-800/90 px-2 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
       >
-        <div className="grid grid-cols-3 gap-1.5 max-w-md mx-auto">
+        <div className="grid grid-cols-4 gap-1 max-w-md mx-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

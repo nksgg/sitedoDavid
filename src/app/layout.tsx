@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FutebolSorter | Gerenciador e Sorteador de Times de Racha",
+  title: "FutebolSorter | Gerenciador, Sorteador e Súmula de Racha",
   description:
-    "Aplicativo web interativo para gestão de jogadores, sorteio equilibrado de times e posições (5x5, 7x7, 11x11), draft manual e exportação rápida para WhatsApp.",
+    "Aplicativo web completo para gestão de elenco, sorteio equilibrado de times e posições (5x5, 7x7, 11x11), súmula ao vivo, estatísticas de jogadores e exportação para WhatsApp.",
 };
 
 export const viewport: Viewport = {

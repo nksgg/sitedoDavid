@@ -356,6 +356,40 @@ export function PlayerManagement({
                   </div>
                 </div>
 
+                {/* Career Stats Mini-Strip (when player has recorded stats) */}
+                {player.stats && player.stats.matches > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold tabular-nums">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      {player.stats.matches}J
+                    </span>
+                    {player.stats.goals > 0 && (
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                        ⚽ {player.stats.goals}
+                      </span>
+                    )}
+                    {player.stats.assists > 0 && (
+                      <span className="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
+                        🎯 {player.stats.assists}
+                      </span>
+                    )}
+                    {player.stats.yellowCards > 0 && (
+                      <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                        🟨 {player.stats.yellowCards}
+                      </span>
+                    )}
+                    {player.stats.redCards > 0 && (
+                      <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                        🟥 {player.stats.redCards}
+                      </span>
+                    )}
+                    {player.stats.mvps > 0 && (
+                      <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">
+                        ⭐ {player.stats.mvps}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Status Toggle Bar (Full touch area on mobile) */}
                 <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
                   <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
