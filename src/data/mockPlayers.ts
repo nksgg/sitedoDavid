@@ -1,80 +1,98 @@
 import { MatchFormat, MatchFormatId, Player, Position } from "@/types/soccer";
 
+function buildMatchFormat(
+  playersPerTeam: number,
+  name: string,
+  description: string,
+  recommendedPositions: Record<Position, number>
+): MatchFormat {
+  const id = `${playersPerTeam}x${playersPerTeam}` as MatchFormatId;
+  const formationSlots: Position[] = [
+    ...Array(recommendedPositions.Goleiro).fill("Goleiro"),
+    ...Array(recommendedPositions.Zagueiro).fill("Zagueiro"),
+    ...Array(recommendedPositions["Meio-campista"]).fill("Meio-campista"),
+    ...Array(recommendedPositions.Atacante).fill("Atacante"),
+  ];
+
+  return {
+    id,
+    name,
+    shortName: id,
+    playersPerTeam,
+    totalStarters: playersPerTeam * 2,
+    description,
+    formationSlots,
+    recommendedPositions,
+  };
+}
+
 export const MATCH_FORMATS: Record<MatchFormatId, MatchFormat> = {
-  "5x5": {
-    id: "5x5",
-    name: "Futsal / Society 5",
-    shortName: "5x5",
-    playersPerTeam: 5,
-    totalStarters: 10,
-    description:
-      "1 Goleiro + 4 na linha por equipe (1 ZAG, 2 MEI, 1 ATA). Posições sorteadas na hora!",
-    formationSlots: [
-      "Goleiro",
-      "Zagueiro",
-      "Meio-campista",
-      "Meio-campista",
-      "Atacante",
-    ],
-    recommendedPositions: {
-      Goleiro: 1,
-      Zagueiro: 1,
-      "Meio-campista": 2,
-      Atacante: 1,
-    },
-  },
-  "7x7": {
-    id: "7x7",
-    name: "Society 7",
-    shortName: "7x7",
-    playersPerTeam: 7,
-    totalStarters: 14,
-    description:
-      "1 Goleiro + 6 na linha por equipe (2 ZAG, 2 MEI, 2 ATA). Posições sorteadas na hora!",
-    formationSlots: [
-      "Goleiro",
-      "Zagueiro",
-      "Zagueiro",
-      "Meio-campista",
-      "Meio-campista",
-      "Atacante",
-      "Atacante",
-    ],
-    recommendedPositions: {
-      Goleiro: 1,
-      Zagueiro: 2,
-      "Meio-campista": 2,
-      Atacante: 2,
-    },
-  },
-  "11x11": {
-    id: "11x11",
-    name: "Futebol de Campo 11",
-    shortName: "11x11",
-    playersPerTeam: 11,
-    totalStarters: 22,
-    description:
-      "1 Goleiro + 10 na linha por equipe (4 ZAG, 4 MEI, 2 ATA). Posições sorteadas na hora!",
-    formationSlots: [
-      "Goleiro",
-      "Zagueiro",
-      "Zagueiro",
-      "Zagueiro",
-      "Zagueiro",
-      "Meio-campista",
-      "Meio-campista",
-      "Meio-campista",
-      "Meio-campista",
-      "Atacante",
-      "Atacante",
-    ],
-    recommendedPositions: {
-      Goleiro: 1,
-      Zagueiro: 4,
-      "Meio-campista": 4,
-      Atacante: 2,
-    },
-  },
+  "1x1": buildMatchFormat(
+    1,
+    "X1 / Duelo",
+    "1 jogador na linha por equipe (1 ATA). Duelo direto!",
+    { Goleiro: 0, Zagueiro: 0, "Meio-campista": 0, Atacante: 1 }
+  ),
+  "2x2": buildMatchFormat(
+    2,
+    "Dupla",
+    "2 jogadores na linha por equipe (1 ZAG, 1 ATA). Posições sorteadas na hora!",
+    { Goleiro: 0, Zagueiro: 1, "Meio-campista": 0, Atacante: 1 }
+  ),
+  "3x3": buildMatchFormat(
+    3,
+    "Trio",
+    "1 Goleiro + 2 na linha por equipe (1 ZAG, 1 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 1, "Meio-campista": 0, Atacante: 1 }
+  ),
+  "4x4": buildMatchFormat(
+    4,
+    "Quadra / Society 4",
+    "1 Goleiro + 3 na linha por equipe (1 ZAG, 1 MEI, 1 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 1, "Meio-campista": 1, Atacante: 1 }
+  ),
+  "5x5": buildMatchFormat(
+    5,
+    "Futsal / Society 5",
+    "1 Goleiro + 4 na linha por equipe (1 ZAG, 2 MEI, 1 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 1, "Meio-campista": 2, Atacante: 1 }
+  ),
+  "6x6": buildMatchFormat(
+    6,
+    "Society 6",
+    "1 Goleiro + 5 na linha por equipe (2 ZAG, 2 MEI, 1 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 2, "Meio-campista": 2, Atacante: 1 }
+  ),
+  "7x7": buildMatchFormat(
+    7,
+    "Society 7",
+    "1 Goleiro + 6 na linha por equipe (2 ZAG, 2 MEI, 2 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 2, "Meio-campista": 2, Atacante: 2 }
+  ),
+  "8x8": buildMatchFormat(
+    8,
+    "Society 8",
+    "1 Goleiro + 7 na linha por equipe (3 ZAG, 2 MEI, 2 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 3, "Meio-campista": 2, Atacante: 2 }
+  ),
+  "9x9": buildMatchFormat(
+    9,
+    "Futebol 9",
+    "1 Goleiro + 8 na linha por equipe (3 ZAG, 3 MEI, 2 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 3, "Meio-campista": 3, Atacante: 2 }
+  ),
+  "10x10": buildMatchFormat(
+    10,
+    "Futebol 10",
+    "1 Goleiro + 9 na linha por equipe (3 ZAG, 4 MEI, 2 ATA). Posições sorteadas na hora!",
+    { Goleiro: 1, Zagueiro: 3, "Meio-campista": 4, Atacante: 2 }
+  ),
+  "11x11": buildMatchFormat(
+    11,
+    "Partida Tradicional",
+    "1 Goleiro + 10 na linha por equipe (4 ZAG, 4 MEI, 2 ATA). Partida tradicional!",
+    { Goleiro: 1, Zagueiro: 4, "Meio-campista": 4, Atacante: 2 }
+  ),
 };
 
 export const POSITION_ORDER: Record<Position, number> = {

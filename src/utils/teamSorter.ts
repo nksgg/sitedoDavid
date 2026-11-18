@@ -67,8 +67,12 @@ export function getNextTacticalPosition(
     }
   }
 
-  // Se a trava de goleiro estiver ativa e o time ainda não tiver goleiro, o 1º a entrar vira Goleiro
-  if (balanceGoalkeepers && currentCounts.Goleiro === 0) {
+  // Se a trava de goleiro estiver ativa, o formato tiver goleiro e o time ainda não tiver goleiro, o 1º a entrar vira Goleiro
+  if (
+    balanceGoalkeepers &&
+    format.recommendedPositions.Goleiro > 0 &&
+    currentCounts.Goleiro === 0
+  ) {
     return "Goleiro";
   }
 
